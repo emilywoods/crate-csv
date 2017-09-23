@@ -1,0 +1,33 @@
+[2017-09-23T11:07:06,808][INFO ][o.e.n.Node               ] [Goldeck] initializing ...
+[2017-09-23T11:07:06,887][INFO ][o.e.e.NodeEnvironment    ] [Goldeck] using [1] data paths, mounts [[/ (/dev/disk1)]], net usable_space [136.4gb], net total_space [232.6gb], spins? [unknown], types [hfs]
+[2017-09-23T11:07:06,888][INFO ][o.e.e.NodeEnvironment    ] [Goldeck] heap size [1.9gb], compressed ordinary object pointers [true]
+[2017-09-23T11:07:07,134][INFO ][i.c.plugin               ] [Goldeck] plugins loaded: [jmx-monitoring, lang-js] 
+[2017-09-23T11:07:07,966][INFO ][o.e.p.PluginsService     ] [Goldeck] no modules loaded
+[2017-09-23T11:07:07,968][INFO ][o.e.p.PluginsService     ] [Goldeck] loaded plugin [crate-azure-discovery]
+[2017-09-23T11:07:07,968][INFO ][o.e.p.PluginsService     ] [Goldeck] loaded plugin [es-repository-hdfs]
+[2017-09-23T11:07:07,968][INFO ][o.e.p.PluginsService     ] [Goldeck] loaded plugin [io.crate.plugin.BlobPlugin]
+[2017-09-23T11:07:07,969][INFO ][o.e.p.PluginsService     ] [Goldeck] loaded plugin [io.crate.plugin.CrateCorePlugin]
+[2017-09-23T11:07:07,969][INFO ][o.e.p.PluginsService     ] [Goldeck] loaded plugin [io.crate.plugin.HttpTransportPlugin]
+[2017-09-23T11:07:07,969][INFO ][o.e.p.PluginsService     ] [Goldeck] loaded plugin [io.crate.plugin.PluginLoaderPlugin]
+[2017-09-23T11:07:07,969][INFO ][o.e.p.PluginsService     ] [Goldeck] loaded plugin [io.crate.plugin.SrvPlugin]
+[2017-09-23T11:07:07,969][INFO ][o.e.p.PluginsService     ] [Goldeck] loaded plugin [io.crate.udc.plugin.UDCPlugin]
+[2017-09-23T11:07:07,969][INFO ][o.e.p.PluginsService     ] [Goldeck] loaded plugin [org.elasticsearch.discovery.ec2.Ec2DiscoveryPlugin]
+[2017-09-23T11:07:07,969][INFO ][o.e.p.PluginsService     ] [Goldeck] loaded plugin [org.elasticsearch.repositories.s3.S3RepositoryPlugin]
+[2017-09-23T11:07:07,970][INFO ][o.e.p.PluginsService     ] [Goldeck] loaded plugin [org.elasticsearch.transport.Netty4Plugin]
+[2017-09-23T11:07:07,988][INFO ][o.e.n.Node               ] [Goldeck] node name [Goldeck], node ID [0FVHCU46RYSbaZwusGmfWg]
+[2017-09-23T11:07:08,021][INFO ][o.e.n.Node               ] [Goldeck] CrateDB version[2.1.7], pid[25683], build[1c334ef/2017-09-14T09:49:00Z], OS[Mac OS X/10.12.3/x86_64], JVM[Oracle Corporation/Java HotSpot(TM) 64-Bit Server VM/1.8.0_111/25.111-b14]
+[2017-09-23T11:07:08,493][INFO ][i.c.module               ] [Goldeck] CrateDB Enterprise features are active. Please request a license before deploying in production or deactivate the Enterprise features. https://crate.io/enterprise
+[2017-09-23T11:07:09,013][INFO ][o.e.d.DiscoveryModule    ] [Goldeck] using discovery type [zen]
+[2017-09-23T11:07:10,482][INFO ][o.e.n.Node               ] [Goldeck] initialized
+[2017-09-23T11:07:10,482][INFO ][o.e.n.Node               ] [Goldeck] starting ...
+[2017-09-23T11:07:10,652][INFO ][psql                     ] [Goldeck] publish_address {127.0.0.1:5433}, bound_addresses {127.0.0.1:5433}
+[2017-09-23T11:07:10,676][INFO ][i.c.p.h.CrateNettyHttpServerTransport] [Goldeck] publish_address {127.0.0.1:4200}, bound_addresses {[fe80::1]:4200}, {[::1]:4200}, {127.0.0.1:4200}
+[2017-09-23T11:07:10,693][INFO ][o.e.t.TransportService   ] [Goldeck] publish_address {127.0.0.1:4300}, bound_addresses {[fe80::1]:4300}, {[::1]:4300}, {127.0.0.1:4300}
+[2017-09-23T11:07:10,702][WARN ][o.e.b.BootstrapChecks    ] [Goldeck] initial heap size [268435456] not equal to maximum heap size [2147483648]; this can cause resize pauses and prevents mlockall from locking the entire heap
+[2017-09-23T11:07:13,768][INFO ][o.e.c.s.ClusterService   ] [Goldeck] new_master {Goldeck}{0FVHCU46RYSbaZwusGmfWg}{OHcGmH6RT5ezyPXA6EWkjw}{127.0.0.1}{127.0.0.1:4300}{http_address=127.0.0.1:4200}, reason: zen-disco-elected-as-master ([0] nodes joined)
+[2017-09-23T11:07:13,778][INFO ][o.e.n.Node               ] [Goldeck] started
+[2017-09-23T11:07:13,802][INFO ][o.e.g.GatewayService     ] [Goldeck] recovered [0] indices into cluster_state
+[2017-09-23T11:08:30,372][INFO ][o.e.n.Node               ] [Goldeck] stopping ...
+[2017-09-23T11:08:30,403][INFO ][o.e.n.Node               ] [Goldeck] stopped
+[2017-09-23T11:08:30,404][INFO ][o.e.n.Node               ] [Goldeck] closing ...
+[2017-09-23T11:08:30,414][INFO ][o.e.n.Node               ] [Goldeck] closed

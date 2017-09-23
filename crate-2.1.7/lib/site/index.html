@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>CrateDB Admin UI</title>
+    <meta name="description" content="CrateDB Admin UI">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="shortcut icon" href="static/assets/favicon.bca9377c.png">
+    <link rel="apple-touch-icon-precomposed" href="static/assets/apple-touch-icon-precomposed.09863ed6.png">
+    <link rel="apple-touch-icon" href="static/assets/apple-touch-icon.09863ed6.png">
+
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+
+    <link rel="stylesheet" href="static/styles/codemirror.fe13bf34.css">
+
+    <link rel="stylesheet" href="static/styles/main.0efe09cb.css">
+
+    <script src="static/scripts/angular.324baa44.js"></script>
+
+    <script src="static/scripts/plugins.77c41275.js"></script>
+
+    <script src="static/scripts/codemirror.895be58f.js"></script>
+
+    <script src="static/scripts/ieshims.1adc7bec.js"></script>
+
+    <script src="static/scripts/scripts.0e966921.js"></script>
+
+</head>
+<body>
+    <!--[if lt IE 7]>
+      <p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to better experience this site.</p>
+    <![endif]-->
+
+    <div id="wrapper">
+      <div id="navigation-wrapper">
+        <div id="navigation-viewport" ng-include="'static/views/nav.html'"></div>
+      </div>
+      <div id="page-wrapper" ng-class="$root.showSideNav ? '' : 'page-wrapper--no-side-nav'">
+        <div id="page-viewport" ng-view></div>
+      </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+[{
+  "name": "tutorial",
+  "uri": "static/plugins/tutorial/tutorial.js",
+  "enterprise": false,
+  "routing": {
+    "/help": {
+      "templateUrl": "static/plugins/tutorial/tutorial.html",
+      "controller": "TutorialController"
+    }
+  }
+}, {
+  "name": "monitoring",
+  "uri": "static/plugins/monitoring/monitoring.js",
+  "stylesheet": "static/plugins/monitoring/monitoring.css",
+  "enterprise": true,
+  "routing": {
+    "/monitoring": {
+      "templateUrl": "static/plugins/monitoring/monitoring.html",
+      "controller": "MonitoringController"
+    }
+  }
+}]
