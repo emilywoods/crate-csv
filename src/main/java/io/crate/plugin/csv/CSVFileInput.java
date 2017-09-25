@@ -24,13 +24,26 @@ public class CSVFileInput implements FileInput {
 
     @Override
     public InputStream getStream(URI uri) throws IOException {
+        InputStream inputStream = null;
         URL url = uri.toURL();
         try {
-            return url.openStream();
+            inputStream = url.openStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream(262144000);
+            CSVFileProcessor csvFileProcessor = new CSVFileProcessor(reader, outputStream);
+            csvFileProcessor.processToStream();
+            byte[] csv = outputStream.toByteArray();
+            outputStream.close();
+            logger.info("Got " + csvFileProcessor.getRecordsWritten() + " objects, skipped " + csvFileProcessor.getSkipped());
+            return new ByteArrayInputStream(csv);
         } catch (FileNotFoundException e) {
             return null;
+        } finally {
+            if (inputStream != null)
+                inputStream.close();
         }
-        // where do we check extension .csv??
+
+
     }
 
     @Override
