@@ -57,7 +57,7 @@ sourceSets {
     test {
         resources {
             srcDir 'src/test/java'
-            include '**/*.gz'
+            include '**/*.csv'
         }
     }
 }
