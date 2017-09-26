@@ -12,10 +12,14 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 public class CSVFileProcessor {
     private static final Logger logger = Loggers.getLogger(CSVFileProcessor.class);
@@ -45,8 +49,11 @@ public class CSVFileProcessor {
         String firstLine = verifyFileNotEmpty();
         columns = extractColumns(firstLine);
         values = extractValues();
-        System.out.println(columns);
-        System.out.println(values);
+        writeObject(values, columns);
+//        System.out.println(columns);
+//        System.out.println(values);
+
+//        columns.stream()
 
     }
 
@@ -58,7 +65,8 @@ public class CSVFileProcessor {
 
     private List<List<String>> extractValues() {
         return sourceReader.lines()
-                .map(line -> extractColumns(line))
+                .filter(row -> (row != null || !row.isEmpty()))
+                .map(this::extractColumns)
                 .collect(toList());
     }
 
@@ -79,7 +87,21 @@ public class CSVFileProcessor {
         return line != null;
     }
 
-    private void writeObject() throws IOException {
+    private void writeObject(List<List<String>> values, List<String> columns) throws IOException {
+        builder.startObject();
+
+        values.forEach(row -> {
+            Map<String, String> myMap = IntStream.range(0, row.size())
+                    .boxed()
+                    .collect(Collectors.toMap(columns::get, row::get));
+            System.out.println(myMap.get("Code"));
+        });
+        builder.field("column", "item");
+        builder.endObject();
+        builder.flush();
+
+//        logger.debug( "{" + + column + ":" + item + "}");
+        outputStream.write(NEW_LINE);
         this.recordsWritten++;
     }
 }
