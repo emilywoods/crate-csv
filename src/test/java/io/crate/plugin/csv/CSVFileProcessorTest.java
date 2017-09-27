@@ -12,7 +12,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class CSVFileProcessorTest {
     CSVFileProcessor subjectUnderTest;
 
-    public static final String EXAMPLE_CSV_FILE = "/data/example.csv";
+    public static final String EXAMPLE_CSV_FILE = "/data/smallerInput.csv";
     InputStream inputStream;
     BufferedReader reader;
     ByteArrayOutputStreamWithExposedBuffer outputStream;
@@ -33,7 +33,7 @@ public class CSVFileProcessorTest {
             givenByteArrayInputStreamIsInitialisedWith(outputStream.getBuffer());
             givenBufferedReaderWithResultInputStreamAndCharset(resultInputStream, StandardCharsets.UTF_8);
 
-            thenResultStartsWith("{\"[{Code=AFG, Name=Afghanistan}\"");
+            thenResultStartsWith("{\"[{Code=AFG, Name=Afghanistan}, {Code=ALB, Name=Albania}\"}");
         } finally {
             if (inputStream != null) {
                 inputStream.close(); //teardown instead??

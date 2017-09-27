@@ -48,11 +48,7 @@ public class CSVFileProcessor {
     public int getRecordsWritten() {
         return recordsWritten;
     }
-
-    public int getSkipped() {
-        return skipped;
-    }
-
+    
     private String verifyFileNotEmpty() throws IOException {
         String firstLine = sourceReader.readLine();
         if (sourceReader == null) throw new IOException("empty file");

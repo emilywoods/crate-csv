@@ -34,7 +34,7 @@ public class CSVFileInput implements FileInput {
             csvFileProcessor.processToStream();
             byte[] csv = outputStream.toByteArray();
             outputStream.close();
-            logger.info("Got " + csvFileProcessor.getRecordsWritten() + " objects, skipped " + csvFileProcessor.getSkipped());
+            logger.info("Got " + csvFileProcessor.getRecordsWritten());
             return new ByteArrayInputStream(csv);
         } catch (FileNotFoundException e) {
             return null;
@@ -42,8 +42,6 @@ public class CSVFileInput implements FileInput {
             if (inputStream != null)
                 inputStream.close();
         }
-
-
     }
 
     @Override
