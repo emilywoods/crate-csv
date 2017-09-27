@@ -4,22 +4,16 @@ package io.crate.plugin.csv;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 public class CSVFileProcessor {
     private static final Logger logger = Loggers.getLogger(CSVFileProcessor.class);
@@ -32,14 +26,12 @@ public class CSVFileProcessor {
     BufferedReader sourceReader;
     OutputStream outputStream;
 
-    List<String> columns;
+    List<String> keys;
     List<List<String>> values;
-
-    String line;
 
     public CSVFileProcessor(BufferedReader sourceReader, OutputStream outputStream) throws IOException {
         this.outputStream = outputStream;
-        builder = XContentFactory.jsonBuilder(this.outputStream);
+        builder = jsonBuilder(this.outputStream);
         this.sourceReader = sourceReader;
         this.recordsWritten = 0;
         this.skipped = 0;
@@ -47,14 +39,18 @@ public class CSVFileProcessor {
 
     public void processToStream() throws IOException {
         String firstLine = verifyFileNotEmpty();
-        columns = extractColumns(firstLine);
+        keys = extractColumnValues(firstLine);
         values = extractValues();
-        writeObject(values, columns);
-//        System.out.println(columns);
-//        System.out.println(values);
+        List<Map<String, String>> inputAsMap = convertCSVToListOfMaps(keys, values);
+        convertListOfMapsToXContentBuilder(inputAsMap);
+    }
 
-//        columns.stream()
+    public int getRecordsWritten() {
+        return recordsWritten;
+    }
 
+    public int getSkipped() {
+        return skipped;
     }
 
     private String verifyFileNotEmpty() throws IOException {
@@ -66,42 +62,34 @@ public class CSVFileProcessor {
     private List<List<String>> extractValues() {
         return sourceReader.lines()
                 .filter(row -> (row != null || !row.isEmpty()))
-                .map(this::extractColumns)
+                .map(this::extractColumnValues)
                 .collect(toList());
     }
 
-    private List<String> extractColumns(String firstLine) {
+    private List<String> extractColumnValues(String firstLine) {
         return Arrays.asList(firstLine.split(","));
     }
 
-    public int getRecordsWritten() {
-        return recordsWritten;
-    }
-
-    public int getSkipped() {
-        return skipped;
-    }
-
-    private boolean nextLine() throws IOException {
-        line = sourceReader.readLine();
-        return line != null;
-    }
-
-    private void writeObject(List<List<String>> values, List<String> columns) throws IOException {
-        builder.startObject();
-
+    private List<Map<String, String>> convertCSVToListOfMaps(List<String> keys, List<List<String>> values) throws IOException {
+        List<Map<String, String>> csvMap = new ArrayList<>();
         values.forEach(row -> {
-            Map<String, String> myMap = IntStream.range(0, row.size())
+            Map<String, String> mapForSingleRow = IntStream.range(0, row.size())
                     .boxed()
-                    .collect(Collectors.toMap(columns::get, row::get));
-            System.out.println(myMap.get("Code"));
+                    .collect(Collectors.toMap(keys::get, row::get));
+            logger.debug(mapForSingleRow);
+            csvMap.add(mapForSingleRow);
+            this.recordsWritten++;
         });
-        builder.field("column", "item");
+        return csvMap;
+    }
+
+    private void convertListOfMapsToXContentBuilder(List<Map<String, String>> inputAsMap) throws IOException {
+        builder.startObject();
+        builder.field(inputAsMap.toString());
         builder.endObject();
         builder.flush();
-
-//        logger.debug( "{" + + column + ":" + item + "}");
         outputStream.write(NEW_LINE);
-        this.recordsWritten++;
     }
+
 }
+

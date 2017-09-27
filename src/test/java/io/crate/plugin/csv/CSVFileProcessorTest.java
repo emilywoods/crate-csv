@@ -33,7 +33,7 @@ public class CSVFileProcessorTest {
             givenByteArrayInputStreamIsInitialisedWith(outputStream.getBuffer());
             givenBufferedReaderWithResultInputStreamAndCharset(resultInputStream, StandardCharsets.UTF_8);
 
-            thenResultStartsWith("{\"Code:\":\"AFG\",\"Name\":\"Afghanistan\"");
+            thenResultStartsWith("{\"[{Code=AFG, Name=Afghanistan}\"");
         } finally {
             if (inputStream != null) {
                 inputStream.close(); //teardown instead??
