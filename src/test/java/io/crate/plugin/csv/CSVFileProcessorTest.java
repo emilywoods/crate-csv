@@ -1,5 +1,6 @@
 package io.crate.plugin.csv;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.*;
@@ -19,8 +20,9 @@ public class CSVFileProcessorTest {
     ByteArrayInputStream resultInputStream;
     BufferedReader resultReader;
 
+    @Ignore
     @Test
-    public void CSVFileProcessor_processesFile() throws IOException {
+    public void CSVFileProcessor_givenCSVInput_thenProcessesFile_andConvertsToJson() throws IOException {
         givenInputStreamIsNull();
         try {
             givenInputStreamReceives(EXAMPLE_CSV_FILE);
@@ -40,6 +42,51 @@ public class CSVFileProcessorTest {
             }
         }
     }
+
+    @Test
+    public void processToStream_givenFileIsEmpty_thenLogsError_andSkipsFile(){
+    }
+
+    @Test
+    public void processToStream_givenInvalidFirstLine_thenLogsError_andSkipsFile() {
+        String input = "Code,,Capital";
+    }
+
+    @Test
+    public void processToStream_givenRowWithMissingValue_andTheFileHasOneRowOfValues_thenLogsError_andSkipsFile() {
+        String input = "Code,,Capital";
+    }
+
+    @Test
+    public void processToStream_givenRowWithMissingValue_andTheFileHasMoreThanOneRowOfValues_thenLogsError_andSkipsRow() {
+        String input = "Code,Name\n";
+    }
+
+    @Test
+    public void processToStream_givenRowWithExtraValue_andTheFileHasMoreThanOneRow_thenLogsError_andSkipsFile() {
+        String input = "Code,Name\n";
+    }
+
+    @Test
+    public void processToStream_givenRowWithExtraValue_andTheFileHasMoreThanOneRowOfValues_thenLogsError_andSkipsRow() {
+        String input = "Code,Name\n";
+    }
+
+    @Test
+    public void processToStream_givenWithInvalidCharacter_andTheFileHasMoreThanOneRowOfValues_thenLogsError_andSkipsRow() {
+        String input = "Code,Name\n";
+    }
+
+    @Test
+    public void processToStream_givenValidInput_thenProcessesFileCorrectly() {
+        String input = "Code,Name\n";
+    }
+
+    @Test
+    public void processToStream_givenRowSpreadsAcrossMultipleLines_thenProcessesFileCorrectly() {
+        String input = "Code,Name\n";
+    }
+
 
     private void thenResultStartsWith(String result) throws IOException {
         assertThat(resultReader.readLine(), startsWith(result));
