@@ -27,7 +27,7 @@ public class CSVFileProcessor {
     OutputStream outputStream;
 
     List<String> keys;
-    List<List<String>> values;
+    List<List<String>> listOfRows;
 
     public CSVFileProcessor(BufferedReader sourceReader, OutputStream outputStream) throws IOException {
         this.outputStream = outputStream;
@@ -38,32 +38,83 @@ public class CSVFileProcessor {
     }
 
     public void processToStream() throws IOException {
-        String firstLine = verifyFileNotEmpty();
+        final int numberOfKeys;
+        String firstLine = sourceReader.readLine();
+        if (isFileEmpty(firstLine)) {
+            logger.debug("Empty file input"); //Extract
+            return;
+        }
+
         keys = extractColumnValues(firstLine);
-        values = extractValues();
-        List<Map<String, String>> inputAsMap = convertCSVToListOfMaps(keys, values);
+        numberOfKeys = keys.size();
+
+        if (invalidKeyPresent(keys)) {
+            logger.debug("Invalid key entry");
+            return;
+        }
+
+
+        listOfRows = extractRowsOfValues();
+
+        if (listOfRows.isEmpty()) {
+            return;
+        }
+
+        boolean invalidRowPresent = rowWithEmptyValuePresent(listOfRows, numberOfKeys);
+
+
+
+        if (invalidRowPresent) {
+            return;
+        }
+
+        List<Map<String, String>> inputAsMap = convertCSVToListOfMaps(keys, listOfRows);
         convertListOfMapsToXContentBuilder(inputAsMap);
     }
+//
+//    private String verifyFileNotEmpty() throws IOException {
+//        String firstLine = sourceReader.readLine();
+//        if (isFileEmpty(firstLine)) {
+//            logger.debug("Empty file input"); //Extract
+//            return;
+//        }
+//
+//        return firstLine;
+//    }
+
 
     public int getRecordsWritten() {
         return recordsWritten;
     }
-    
-    private String verifyFileNotEmpty() throws IOException {
-        String firstLine = sourceReader.readLine();
-        if (sourceReader == null) throw new IOException("empty file");
-        return firstLine;
+
+    public int getSkipped() {
+        return skipped;
     }
 
-    private List<List<String>> extractValues() {
+    private boolean isFileEmpty(String content) throws IOException {
+        return content == null;
+    }
+
+    private List<List<String>> extractRowsOfValues() {
         return sourceReader.lines()
-                .filter(row -> (row != null || !row.isEmpty()))
+                .filter(row -> row != null && !row.isEmpty())
                 .map(this::extractColumnValues)
                 .collect(toList());
     }
 
     private List<String> extractColumnValues(String firstLine) {
         return Arrays.asList(firstLine.split(","));
+    }
+
+    private boolean invalidKeyPresent(List<String> keys) {
+        return keys.stream().anyMatch(key -> key == null || key.isEmpty());
+    }
+
+    private boolean rowWithEmptyValuePresent(List<List<String>> rowsOfValues, int numberOfKeys) {
+        return rowsOfValues
+                .stream()
+                .anyMatch(row -> row.stream().anyMatch(value -> (value == null) || value.isEmpty()) ||
+                        row.size() != numberOfKeys);
     }
 
     private List<Map<String, String>> convertCSVToListOfMaps(List<String> keys, List<List<String>> values) throws IOException {
