@@ -4,7 +4,7 @@ CrateDB CSV Importer
 
 A plugin for importing `CSV`_ data into CrateDB_.
 
-The plugin adds the ``csv`` URI scheme to the ``COPY FROM`` command, which then allows you to import csv data to a table.
+The plugin allows you to import csv data to a table using the ``COPY FROM`` command
 
 Prerequisites
 =============
@@ -23,7 +23,7 @@ Setup
 
 Clone the project::
 
-    $ git clone git@github.com:
+    $ git clone git@github.com:emilywoods/crate-csv.git
 
 Build the JAR file like so::
 
@@ -34,7 +34,6 @@ Copy the JAR file to CrateDB's plugins directory::
   cp build/libs/crate-csv-<version>.jar <CRATEDB_HOME>/plugins
 
 Here, ``<CRATEDB_HOME>`` is the root of your CrateDB installation.
-
 
 
 
