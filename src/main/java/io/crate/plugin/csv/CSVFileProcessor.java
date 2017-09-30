@@ -38,7 +38,7 @@ public class CSVFileProcessor {
     }
 
     // improve naming
-    
+
     public void processToStream() throws IOException {
         final int numberOfKeys;
         String firstLine = sourceReader.readLine();
@@ -55,7 +55,6 @@ public class CSVFileProcessor {
             return;
         }
 
-
         listOfRows = extractRowsOfValues();
 
         if (listOfRows.isEmpty()) {
@@ -64,20 +63,19 @@ public class CSVFileProcessor {
 
         boolean invalidRowPresent = rowWithEmptyValuePresent(listOfRows, numberOfKeys);
 
-
         if (invalidRowPresent && listOfRows.size() < 2) {
             return;
         } else if (invalidRowPresent) {
             List<List<String>> listOfValidRows = listOfRowsMinusInvalidRows(listOfRows, numberOfKeys);
-            skipped = listOfRows.size() - listOfValidRows.size();
-            System.out.println(skipped);
+            skipped += listOfRows.size() - listOfValidRows.size();
+            System.out.println(listOfValidRows);
+            List<Map<String, String>> inputAsMap = convertCSVToListOfMaps(keys, listOfValidRows);
+//            convertListOfMapsToXContentBuilder(inputAsMap);
+        } else {
+            List<Map<String, String>> inputAsMap = convertCSVToListOfMaps(keys, listOfRows);
+//            convertListOfMapsToXContentBuilder(inputAsMap);
         }
-
-
-        List<Map<String, String>> inputAsMap = convertCSVToListOfMaps(keys, listOfRows);
-        convertListOfMapsToXContentBuilder(inputAsMap);
     }
-
 
     public int getRecordsWritten() {
         return recordsWritten;
@@ -109,13 +107,12 @@ public class CSVFileProcessor {
     private boolean rowWithEmptyValuePresent(List<List<String>> rowsOfValues, int numberOfKeys) {
         return rowsOfValues
                 .stream()
-                .anyMatch(row -> row.stream().anyMatch(value -> (value == null) || value.isEmpty()) ||
-                        row.size() != numberOfKeys);
+                .anyMatch(row -> row.size() != numberOfKeys);
     }
 
     private  List<List<String>> listOfRowsMinusInvalidRows(List<List<String>> listOfRows, int numberOfKeys) {
         return listOfRows.stream()
-                .filter(row -> row.size() != numberOfKeys)
+                .filter(row -> row.size() == numberOfKeys)
                 .collect(toList());
     }
 
@@ -125,16 +122,22 @@ public class CSVFileProcessor {
             Map<String, String> mapForSingleRow = IntStream.range(0, row.size())
                     .boxed()
                     .collect(Collectors.toMap(keys::get, row::get));
+            for (Map.Entry<String, String> entry : mapForSingleRow.entrySet()) {
+                try {
+                    convertListOfMapsToXContentBuilder(entry.getKey(), entry.getValue());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
             logger.debug(mapForSingleRow);
-            csvMap.add(mapForSingleRow);
             this.recordsWritten++;
         });
         return csvMap;
     }
 
-    private void convertListOfMapsToXContentBuilder(List<Map<String, String>> inputAsMap) throws IOException {
+    private void convertListOfMapsToXContentBuilder(String key, String value) throws IOException {
         builder.startObject();
-        builder.field(inputAsMap.toString());
+        builder.field(key, value);
         builder.endObject();
         builder.flush();
         outputStream.write(NEW_LINE);

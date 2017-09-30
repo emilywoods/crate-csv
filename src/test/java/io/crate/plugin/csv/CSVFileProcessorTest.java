@@ -1,7 +1,6 @@
 package io.crate.plugin.csv;
 
-import org.apache.logging.log4j.Logger;
-import org.elasticsearch.common.logging.Loggers;
+import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +25,7 @@ public class CSVFileProcessorTest {
     private static final byte NEW_LINE = (byte) '\n';
 
     int skipped;
+    int records;
 
     InputStream inputStream;
 
@@ -35,9 +35,7 @@ public class CSVFileProcessorTest {
     @Mock
     ByteArrayOutputStreamWithExposedBuffer outputStream;
 
-    @Mock
-    Logger logger = Loggers.getLogger(CSVFileProcessor.class);;
-
+    XContentBuilder builder;
     ByteArrayInputStream resultInputStream;
     BufferedReader resultReader;
 
@@ -60,7 +58,7 @@ public class CSVFileProcessorTest {
             givenByteArrayInputStreamIsInitialisedWith(outputStream.getBuffer());
             givenBufferedReaderWithResultInputStreamAndCharset(resultInputStream, StandardCharsets.UTF_8);
 
-            thenResultStartsWith("{[{Code=AFG, Name=Afghanistan}, {Code=ALB, Name=Albania}]}");
+            thenResultStartsWith("{\"Code\":\"AFG\"}");
         } finally {
             if (inputStream != null) {
                 inputStream.close(); //teardown instead??
@@ -88,7 +86,7 @@ public class CSVFileProcessorTest {
 
     @Test
     public void processToStream_givenValidRowOfKeys_andNoRowOfValues_thenSkipsFile() throws IOException {
-        givenFileHasValidFirstLineOfKeys();
+        givenFileHasValidFirstLineOfThreeKeys();
         givenRowOfValues(null);
 
         whenProcessToStreamIsCalled();
@@ -98,7 +96,7 @@ public class CSVFileProcessorTest {
 
     @Test
     public void processToStream_givenRowWithMissingValue_andTheFileHasOneRowOfValues_thenSkipsFile() throws IOException {
-        givenFileHasValidFirstLineOfKeys();
+        givenFileHasValidFirstLineOfThreeKeys();
         givenRowOfValues("GBR,Great Britain,");
 
         whenProcessToStreamIsCalled();
@@ -107,9 +105,9 @@ public class CSVFileProcessorTest {
     }
 
     @Test
-    public void processToStream_givenRowWithMissingValues_andTheFileHasMoreThanOneRowOfValues_thenSkipsRow() throws IOException {
-        givenFileHasValidFirstLineOfKeys();
-        givenFirstAndSecondRowsOfValuesAre("GBR,Great Britain,London", "IRL,Ireland,");
+    public void processToStream_and_getSkipped_givenRowWithMissingValues_andTheFileHasMoreThanOneRowOfValues_thenSkipsRow() throws IOException {
+        givenFileHasValidFirstLineOfThreeKeys();
+        givenRowsOfValuesAre("GBR,Great Britain,London", "IRL,Ireland,");
 
         whenProcessToStreamIsCalled();
         whenGetSkippedIsCalled();
@@ -118,40 +116,67 @@ public class CSVFileProcessorTest {
     }
 
     @Test
-    public void Emptyrow() {
+    public void processToStream_givenRowWithExtraValue_andTheFileHasOneRowOfValues_thenSkipsFile() throws IOException {
+        givenFileHasValidFirstLineOfThreeKeys();
+        givenRowOfValues("GBR,Great Britain,London,Another");
 
+        whenProcessToStreamIsCalled();
+
+        thenDoesNotWriteToOutputStream();
     }
 
     @Test
-    public void processToStream_givenRowWithExtraValue_andTheFileHasMoreThanOneRow_thenLogsError_andSkipsFile() {
-        String input = "Code,Name\n";
+    public void processToStream_and_getSkipped_givenRowWithExtraValue_andTheFileHasMoreThanOneRowOfValues_thenSkipsRow() throws IOException {
+        givenFileHasValidFirstLineOfThreeKeys();
+        givenRowsOfValuesAre("GBR,Great Britain,London,Another", "IRL,Ireland,Dublin");
+
+        whenProcessToStreamIsCalled();
+        whenGetSkippedIsCalled();
+
+        thenNumberOfSkippedRowsIsEqualTo(1);
     }
 
     @Test
-    public void processToStream_givenRowWithExtraValue_andTheFileHasMoreThanOneRowOfValues_thenLogsError_andSkipsRow() {
-        String input = "Code,Name\n";
+    public void processToStream_givenValidInput_thenProcessesFileCorrectly() throws IOException {
+        givenFileHasValidFirstLineOfThreeKeys();
+        givenRowsOfValuesAre("GBR,Great Britain,London", "IRL,Ireland,Dublin");
+
+        whenProcessToStreamIsCalled();
+        whenGetRecordsIsCalled();
+
+        thenNumberOfRecordsWrittenIs(6);
+        thenWritesToOutputStream();
     }
 
     @Test
-    public void processToStream_givenWithInvalidCharacter_andTheFileHasMoreThanOneRowOfValues_thenLogsError_andSkipsRow() {
-        String input = "Code,Name\n";
+    public void processToStream_givenRowSpreadsAcrossMultipleLines_thenProcessesFileCorrectly() throws IOException {
+        givenFileHasValidFirstLineOfThreeKeys();
+        givenRowsOfValuesAre("GBR,Great Britain,\nLondon", "IRL,Ireland,Dublin");
+
+        whenProcessToStreamIsCalled();
+        whenGetRecordsIsCalled();
+
+        thenNumberOfRecordsWrittenIs(6);
+        thenWritesToOutputStream();
     }
 
     @Test
-    public void processToStream_givenValidInput_thenProcessesFileCorrectly() {
-        String input = "Code,Name\n";
-    }
+    public void processToStream_givenEmptyRow_andTheFileHasMoreThanOneRowOfValues_thenIgnoresEmptyRow() throws IOException {
+        givenFileHasValidFirstLineOfThreeKeys();
+        givenRowsOfValuesAre("GBR,Great Britain,London","", "GBR,Great Britain,London");
 
-    @Test
-    public void processToStream_givenRowSpreadsAcrossMultipleLines_thenProcessesFileCorrectly() {
-        String input = "Code,Name\n";
+        whenProcessToStreamIsCalled();
+        whenGetRecordsIsCalled();
+
+        thenNumberOfRecordsWrittenIs(6);
+        thenWritesToOutputStream();
     }
 
     private void givenFileIsEmpty() throws IOException {
         when(sourceReader.readLine()).thenReturn(null);
     }
 
-    private void givenFileHasValidFirstLineOfKeys() throws IOException {
+    private void givenFileHasValidFirstLineOfThreeKeys() throws IOException {
         when(sourceReader.readLine()).thenReturn("Code,Country,Capital\n");
     }
 
@@ -159,9 +184,8 @@ public class CSVFileProcessorTest {
         when(sourceReader.lines()).thenReturn(Stream.of(row));
     }
 
-
-    private void givenFirstAndSecondRowsOfValuesAre(String firstRow, String secondRow) {
-        when(sourceReader.lines()).thenReturn(Stream.of(firstRow,secondRow));
+    private void givenRowsOfValuesAre(String... rows) {
+        when(sourceReader.lines()).thenReturn(Stream.of(rows));
     }
 
     private void givenInputStreamIsNull() {
@@ -202,6 +226,9 @@ public class CSVFileProcessorTest {
         skipped = subjectUnderTest.getSkipped();
     }
 
+    private void whenGetRecordsIsCalled() {
+        records = subjectUnderTest.getRecordsWritten();
+    }
     private void thenNumberOfSkippedRowsIsEqualTo(int i) {
         assertThat(skipped, is(1));
     }
@@ -213,6 +240,15 @@ public class CSVFileProcessorTest {
     private void thenResultStartsWith(String result) throws IOException {
         assertThat(resultReader.readLine(), startsWith(result));
     }
+
+    private void thenNumberOfRecordsWrittenIs(int numberOfRecordsWritten) {
+        assertThat(records, is(numberOfRecordsWritten));
+    }
+
+    private void thenWritesToOutputStream() {
+        verify(outputStream, times(1)).write(NEW_LINE);
+    }
+
 
     class ByteArrayOutputStreamWithExposedBuffer extends ByteArrayOutputStream {
 
