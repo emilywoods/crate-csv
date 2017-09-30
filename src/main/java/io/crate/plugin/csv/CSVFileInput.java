@@ -1,7 +1,6 @@
 package io.crate.plugin.csv;
 
 import io.crate.operation.collect.files.FileInput;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.logging.Loggers;
 
@@ -26,6 +25,11 @@ public class CSVFileInput implements FileInput {
     public InputStream getStream(URI uri) throws IOException {
         InputStream inputStream = null;
         URL url = uri.toURL();
+
+        if (!uri.toString().matches("\\*.csv")) {
+            return null;
+        }
+
         try {
             inputStream = url.openStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
@@ -34,7 +38,7 @@ public class CSVFileInput implements FileInput {
             csvFileProcessor.processToStream();
             byte[] csv = outputStream.toByteArray();
             outputStream.close();
-            logger.info("Got " + csvFileProcessor.getRecordsWritten());
+            logger.info("Got " + csvFileProcessor.getRecordsWritten() + "records written and " + csvFileProcessor.getSkipped() + "skipped");
             return new ByteArrayInputStream(csv);
         } catch (FileNotFoundException e) {
             return null;
