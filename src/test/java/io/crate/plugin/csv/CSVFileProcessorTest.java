@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -67,7 +66,7 @@ public class CSVFileProcessorTest {
     }
 
     @Test
-    public void processToStream_givenFileIsEmpty_andSkipsFile() throws IOException {
+    public void processToStream_givenFileIsEmpty_thenSkipsFile() throws IOException {
         givenFileIsEmpty();
         
         whenProcessToStreamIsCalled();
@@ -76,7 +75,7 @@ public class CSVFileProcessorTest {
     }
 
     @Test
-    public void processToStream_givenInvalidFirstLine_andSkipsFile() throws IOException {
+    public void processToStream_givenInvalidFirstLine_thenSkipsFile() throws IOException {
         givenFirstLineIs("Code,,Capital");
 
         whenProcessToStreamIsCalled();
@@ -145,7 +144,7 @@ public class CSVFileProcessorTest {
         whenGetRecordsIsCalled();
 
         thenNumberOfRecordsWrittenIs(6);
-        thenWritesToOutputStream();
+        thenWritesToOutputStreamTimes(6);
     }
 
     @Test
@@ -157,7 +156,7 @@ public class CSVFileProcessorTest {
         whenGetRecordsIsCalled();
 
         thenNumberOfRecordsWrittenIs(6);
-        thenWritesToOutputStream();
+        thenWritesToOutputStreamTimes(6);
     }
 
     @Test
@@ -169,7 +168,7 @@ public class CSVFileProcessorTest {
         whenGetRecordsIsCalled();
 
         thenNumberOfRecordsWrittenIs(6);
-        thenWritesToOutputStream();
+        thenWritesToOutputStreamTimes(6);
     }
 
     private void givenFileIsEmpty() throws IOException {
@@ -238,15 +237,15 @@ public class CSVFileProcessorTest {
     }
 
     private void thenResultStartsWith(String result) throws IOException {
-        assertThat(resultReader.readLine(), startsWith(result));
+        assertThat(resultReader.readLine(), is(result));
     }
 
     private void thenNumberOfRecordsWrittenIs(int numberOfRecordsWritten) {
         assertThat(records, is(numberOfRecordsWritten));
     }
 
-    private void thenWritesToOutputStream() {
-        verify(outputStream, times(1)).write(NEW_LINE);
+    private void thenWritesToOutputStreamTimes(int numberOfTimesOutput) {
+        verify(outputStream, times(numberOfTimesOutput)).write(NEW_LINE);
     }
 
 

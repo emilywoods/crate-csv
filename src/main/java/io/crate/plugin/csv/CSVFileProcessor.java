@@ -26,9 +26,6 @@ public class CSVFileProcessor {
     BufferedReader sourceReader;
     OutputStream outputStream;
 
-    List<String> keys;
-    List<List<String>> listOfRows;
-
     public CSVFileProcessor(BufferedReader sourceReader, OutputStream outputStream) throws IOException {
         this.outputStream = outputStream;
         builder = jsonBuilder(this.outputStream);
@@ -37,43 +34,34 @@ public class CSVFileProcessor {
         this.skipped = 0;
     }
 
-    // improve naming
-
     public void processToStream() throws IOException {
+        final List<String> keys;
         final int numberOfKeys;
-        String firstLine = sourceReader.readLine();
-        if (isFileEmpty(firstLine)) {
-            logger.debug("Empty file input"); //Extract
+        final List<List<String>> listOfRows;
+
+        final String fileContent = sourceReader.readLine();
+
+        if (isFileEmpty(fileContent)) {
+            logger.debug("An empty file has been input");
             return;
         }
 
-        keys = extractColumnValues(firstLine);
+        keys = extractColumnValues(fileContent);
         numberOfKeys = keys.size();
 
-        if (invalidKeyPresent(keys)) {
-            logger.debug("Invalid key entry");
+        if (emptyKeyPresent(keys)) {
+            logger.error("One or more of the key entries was null or empty");
             return;
         }
 
-        listOfRows = extractRowsOfValues();
+        listOfRows = extractListOfRowsWithValues();
 
-        if (listOfRows.isEmpty()) {
-            return;
-        }
-
-        boolean invalidRowPresent = rowWithEmptyValuePresent(listOfRows, numberOfKeys);
-
-        if (invalidRowPresent && listOfRows.size() < 2) {
-            return;
-        } else if (invalidRowPresent) {
-            List<List<String>> listOfValidRows = listOfRowsMinusInvalidRows(listOfRows, numberOfKeys);
+        if (isRowWithEmptyValuePresent(listOfRows, numberOfKeys)) {
+            List<List<String>> listOfValidRows = listOfRowsWithInvalidRowsRemoved(listOfRows, numberOfKeys);
             skipped += listOfRows.size() - listOfValidRows.size();
-            System.out.println(listOfValidRows);
-            List<Map<String, String>> inputAsMap = convertCSVToListOfMaps(keys, listOfValidRows);
-//            convertListOfMapsToXContentBuilder(inputAsMap);
+            convertCSVToJson(keys, listOfValidRows);
         } else {
-            List<Map<String, String>> inputAsMap = convertCSVToListOfMaps(keys, listOfRows);
-//            convertListOfMapsToXContentBuilder(inputAsMap);
+            convertCSVToJson(keys, listOfRows);
         }
     }
 
@@ -86,10 +74,14 @@ public class CSVFileProcessor {
     }
 
     private boolean isFileEmpty(String content) throws IOException {
-        return content == null;
+        return content == null || content.isEmpty();
     }
 
-    private List<List<String>> extractRowsOfValues() {
+    private boolean emptyKeyPresent(List<String> keys) {
+        return keys.stream().anyMatch(key -> key == null || key.isEmpty());
+    }
+
+    private List<List<String>> extractListOfRowsWithValues() {
         return sourceReader.lines()
                 .filter(row -> row != null && !row.isEmpty())
                 .map(this::extractColumnValues)
@@ -100,39 +92,42 @@ public class CSVFileProcessor {
         return Arrays.asList(firstLine.split(","));
     }
 
-    private boolean invalidKeyPresent(List<String> keys) {
-        return keys.stream().anyMatch(key -> key == null || key.isEmpty());
-    }
-
-    private boolean rowWithEmptyValuePresent(List<List<String>> rowsOfValues, int numberOfKeys) {
+    private boolean isRowWithEmptyValuePresent(List<List<String>> rowsOfValues, int numberOfKeys) {
         return rowsOfValues
                 .stream()
                 .anyMatch(row -> row.size() != numberOfKeys);
     }
 
-    private  List<List<String>> listOfRowsMinusInvalidRows(List<List<String>> listOfRows, int numberOfKeys) {
+    private  List<List<String>> listOfRowsWithInvalidRowsRemoved(List<List<String>> listOfRows, int numberOfKeys) {
         return listOfRows.stream()
                 .filter(row -> row.size() == numberOfKeys)
                 .collect(toList());
     }
 
-    private List<Map<String, String>> convertCSVToListOfMaps(List<String> keys, List<List<String>> values) throws IOException {
-        List<Map<String, String>> csvMap = new ArrayList<>();
+    private void convertCSVToJson(List<String> keys, List<List<String>> values) throws IOException {
         values.forEach(row -> {
-            Map<String, String> mapForSingleRow = IntStream.range(0, row.size())
-                    .boxed()
-                    .collect(Collectors.toMap(keys::get, row::get));
-            for (Map.Entry<String, String> entry : mapForSingleRow.entrySet()) {
-                try {
-                    convertListOfMapsToXContentBuilder(entry.getKey(), entry.getValue());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            Map<String, String> mapForSingleRow = getMapForSingleRow(keys, row);
+
+            for (Map.Entry<String, String> mapEntry : mapForSingleRow.entrySet()) {
+                generateJsonForEachEntry(mapForSingleRow, mapEntry);
             }
-            logger.debug(mapForSingleRow);
-            this.recordsWritten++;
         });
-        return csvMap;
+    }
+
+    private Map<String, String> getMapForSingleRow(List<String> keys, List<String> row) {
+        return IntStream.range(0, row.size())
+                .boxed()
+                .collect(Collectors.toMap(keys::get, row::get));
+    }
+
+    private void generateJsonForEachEntry(Map<String, String> mapForSingleRow, Map.Entry<String, String> mapEntry) {
+        try {
+            convertListOfMapsToXContentBuilder(mapEntry.getKey(), mapEntry.getValue());
+            logger.debug("Entry: " + mapForSingleRow);
+            this.recordsWritten++;
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
     }
 
     private void convertListOfMapsToXContentBuilder(String key, String value) throws IOException {
