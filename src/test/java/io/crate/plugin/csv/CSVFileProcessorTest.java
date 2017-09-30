@@ -117,14 +117,6 @@ public class CSVFileProcessorTest {
         thenNumberOfSkippedRowsIsEqualTo(1);
     }
 
-    private void whenGetSkippedIsCalled() {
-        skipped = subjectUnderTest.getSkipped();
-    }
-
-    private void thenNumberOfSkippedRowsIsEqualTo(int i) {
-        assertThat(skipped, is(1));
-    }
-
     @Test
     public void Emptyrow() {
 
@@ -169,9 +161,8 @@ public class CSVFileProcessorTest {
 
 
     private void givenFirstAndSecondRowsOfValuesAre(String firstRow, String secondRow) {
-        when(sourceReader.lines()).thenReturn(Stream.of(firstRow), Stream.of(secondRow));
+        when(sourceReader.lines()).thenReturn(Stream.of(firstRow,secondRow));
     }
-
 
     private void givenInputStreamIsNull() {
         inputStream = null;
@@ -205,6 +196,14 @@ public class CSVFileProcessorTest {
 
     private void whenProcessToStreamIsCalled() throws IOException {
         subjectUnderTest.processToStream();
+    }
+
+    private void whenGetSkippedIsCalled() {
+        skipped = subjectUnderTest.getSkipped();
+    }
+
+    private void thenNumberOfSkippedRowsIsEqualTo(int i) {
+        assertThat(skipped, is(1));
     }
 
     private void thenDoesNotWriteToOutputStream() {

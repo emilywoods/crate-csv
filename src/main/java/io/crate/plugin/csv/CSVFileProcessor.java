@@ -37,6 +37,8 @@ public class CSVFileProcessor {
         this.skipped = 0;
     }
 
+    // improve naming
+    
     public void processToStream() throws IOException {
         final int numberOfKeys;
         String firstLine = sourceReader.readLine();
@@ -63,24 +65,18 @@ public class CSVFileProcessor {
         boolean invalidRowPresent = rowWithEmptyValuePresent(listOfRows, numberOfKeys);
 
 
-
-        if (invalidRowPresent) {
+        if (invalidRowPresent && listOfRows.size() < 2) {
             return;
+        } else if (invalidRowPresent) {
+            List<List<String>> listOfValidRows = listOfRowsMinusInvalidRows(listOfRows, numberOfKeys);
+            skipped = listOfRows.size() - listOfValidRows.size();
+            System.out.println(skipped);
         }
+
 
         List<Map<String, String>> inputAsMap = convertCSVToListOfMaps(keys, listOfRows);
         convertListOfMapsToXContentBuilder(inputAsMap);
     }
-//
-//    private String verifyFileNotEmpty() throws IOException {
-//        String firstLine = sourceReader.readLine();
-//        if (isFileEmpty(firstLine)) {
-//            logger.debug("Empty file input"); //Extract
-//            return;
-//        }
-//
-//        return firstLine;
-//    }
 
 
     public int getRecordsWritten() {
@@ -115,6 +111,12 @@ public class CSVFileProcessor {
                 .stream()
                 .anyMatch(row -> row.stream().anyMatch(value -> (value == null) || value.isEmpty()) ||
                         row.size() != numberOfKeys);
+    }
+
+    private  List<List<String>> listOfRowsMinusInvalidRows(List<List<String>> listOfRows, int numberOfKeys) {
+        return listOfRows.stream()
+                .filter(row -> row.size() != numberOfKeys)
+                .collect(toList());
     }
 
     private List<Map<String, String>> convertCSVToListOfMaps(List<String> keys, List<List<String>> values) throws IOException {
